@@ -81,7 +81,7 @@ Please see included files under `./deps`.
 
 The `cldr-runner` project can also be used to bootstrap a local development environment on the native host environment (as opposed to a Docker image).  This option is more involved, but can avoid issues with Docker, such as mount latencies, and improve collection development. 
 
-The `local_environment.yml` playbook sets up a `cldr-runner`-like workspace for OSX and Ubuntu.  The playbook will clone the Cloudera collections and `cdpy` for local work, install the external Ansible dependencies, update the Python `venv`, and create a convenient setup script for future work.
+The `local_environment.yml` playbook sets up a `cldr-runner`-like workspace for OSX, Ubuntu, CentOS 7 and RHEL.  The playbook will clone the Cloudera collections and `cdpy` for local work, install the external Ansible dependencies, update the Python `venv`, and create a convenient setup script for future work.
 
 NOTE: The cloned Cloudera collections and cdpy project use the `main` branches by default. Manipulating the branches, etc. is outside the scope of the `local_environment.yml` playbook.
 
@@ -108,7 +108,7 @@ Make sure you are able to connect to public GitHub via SSH and then construct th
 $ ansible-playbook local_development.yml
 ```
 
-NOTE: For Ubuntu deployments, you will need to add the `--ask-become-pass` flag.
+NOTE: If passwordless sudo is not available, you will need to add the `--ask-become-pass` flag for the installation of system packages.
 
 Source the `setup-ansible-env.sh` file to use this development environment.
 ```bash

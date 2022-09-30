@@ -47,6 +47,10 @@
     - name: Add package keys and repositories for Ubuntu
       when: ansible_distribution == "Ubuntu"
       block:
+        - name: Set Pip package name
+          ansible.builtin.set_fact: 
+            pip_package_name: pip
+
         - name: Add package keys
           become: yes
           ansible.builtin.apt_key:
@@ -74,6 +78,42 @@
               repo: "deb [arch=amd64] https://packages.microsoft.com/repos/azure-cli/ {{ ansible_distribution_release }} main"
       tags: system
 
+    - name: Add package keys and repositories for Centos/RHEL
+      when: ansible_distribution == "CentOS" or ansible_distribution == "RedHat"
+      block:
+        - name: Set Pip package name
+          ansible.builtin.set_fact: 
+            pip_package_name: python3-pip
+
+        - name: Print message
+          debug:
+            msg: 
+              - "Going to add some RHEL family packages"
+              - "python_interpreter_package is {{ python_interpreter_package | default('auto')}}"
+
+        - name: Add package repositories
+          become: yes
+          ansible.builtin.yum_repository:
+            name: "{{ item.name }}"
+            description: "{{ item.name }} YUM repo"
+            baseurl: "{{ item.repo }}"
+            state: present
+            gpgkey: "{{ item.gpgkey }}"
+          loop:
+            - name:   "terraform"
+              repo:   "https://rpm.releases.hashicorp.com/RHEL/$releasever/$basearch/stable"
+              gpgkey: "https://rpm.releases.hashicorp.com/gpg"
+            - name:   "kubectl"
+              repo:   "https://packages.cloud.google.com/yum/repos/kubernetes-el7-$basearch"
+              gpgkey: "https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg"
+            - name:   "google-cloud-sdk"
+              repo:   "https://packages.cloud.google.com/yum/repos/cloud-sdk-el8-x86_64"
+              gpgkey: "https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg"
+            - name:   "azure-cli"
+              repo:   "https://packages.microsoft.com/yumrepos/azure-cli"
+              gpgkey: "https://packages.microsoft.com/keys/microsoft.asc"
+      tags: system
+
     - name: Ensure availability of system commands
       when: ansible_distribution != "MacOSX"
       block:
@@ -81,7 +121,7 @@
           become: yes
           ansible.builtin.package:
             name:
-              - pip
+              - "{{ pip_package_name }}"
               - git
               - terraform
               - kubectl
@@ -110,6 +150,7 @@
                 mode: 0555
               when: item.rc != 0
               loop: "{{ command_availability.results }}"
+      tags: system
 
     - name: Ensure availability of system commands (MacOSX)
       when: ansible_distribution == "MacOSX"
